@@ -111,12 +111,17 @@ def reorder_frames_target(input_queue, output_queue, arguments):
             expected_frame_id += 1
 
 def display_frames_target(input_queue, output_queue, arguments):
+    sink, = arguments
+    #if sink is None:
+    #    return
+    print("sink = %s " % sink)
     while True:
         frame = input_queue.get(block = True)
         if frame == "":
             break
-        cv2.imshow("Frame", frame.array)
-        cv2.waitKey(1)
+        #cv2.imshow("Frame", frame.array)
+        #cv2.waitKey(1)
+        sink.write(frame.array.tostring())
 
 def detect(source, sink, media_info):
     read_frames_queue = mp.Queue(maxsize = 100)
@@ -126,13 +131,14 @@ def detect(source, sink, media_info):
     read_frames_thread = t.Thread(target = read_frames_target, args = [None, read_frames_queue, (source, media_info.width, media_info.height)])
     detect_faces_threads = [mp.Process(target = detect_faces_target, args = [read_frames_queue, detect_faces_queue, ()]) for i in range(3)]
     reorder_frames_thread = t.Thread(target = reorder_frames_target, args = [detect_faces_queue, reorder_frames_queue, ()])
-    display_frames_thread = t.Thread(target = display_frames_target, args = [reorder_frames_queue, None, ()])
+    display_frames_thread = t.Thread(target = display_frames_target, args = [reorder_frames_queue, None, (sink,)])
 
     read_frames_thread.start()
     for detect_faces_thread in detect_faces_threads:
         detect_faces_thread.start()
     reorder_frames_thread.start()
     display_frames_thread.start()
+    #display_frames_target(reorder_frames_queue, None, (sink))
     
 def crop_frame(frame, box):
     x1, y1, x2, y2 = box
@@ -152,11 +158,13 @@ def main(video):
     #print read.stderr.read()
     ##print read.stdout.read()
     ##print read.stderr.read()
-    #write = ffmpeg_write(media_info)
-    #play = vlc_play(write.stdout)
+    write = ffmpeg_write(media_info)
+    print write.stdin
+    #sleep(60)
+    play = vlc_play(write.stdout)
     #play = cat(write.stdout, "GHOST.flv")
-    detect(read.stdout, None, media_info) #write.stdin, media_info)
-    #play.wait()
+    detect(read.stdout, write.stdin, media_info) #write.stdin, media_info)
+    play.wait()
 
     #read_process = ffmpeg_read(video_input, media_info)
     #with read_process.stdout as read_stdout:
