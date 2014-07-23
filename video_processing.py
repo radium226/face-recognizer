@@ -14,6 +14,10 @@ import threading as t
 import multiprocessing as mp
 import functools as f
 import pickle
+from PIL import Image
+
+from commons import Frame, Size, Color
+from detectors import FaceDetector
 
 def pack(o):
     return pickle.dumps(o)
@@ -24,7 +28,7 @@ def unpack(s):
 
 OPENCV_HAAR = "/usr/share/opencv/haarcascades"
 
-Color = enum(RED = (255, 0, 0), GREEN = (0, 0, 255), BLUE = (0, 255, 0), YELLOW = (255, 255, 0))
+Colors = enum(RED = (255, 0, 0), GREEN = (0, 0, 255), BLUE = (0, 255, 0), YELLOW = (255, 255, 0), WHITE = (255, 255, 255))
 Haar = enum(FRONTAL_FACE = OPENCV_HAAR + "/haarcascade_frontalface_alt.xml", EYE = OPENCV_HAAR + "/haarcascade_eye.xml", MOUTH = OPENCV_HAAR + "/haarcascade_mcs_mouth.xml", NOSE = OPENCV_HAAR + "/haarcascade_mcs_nose.xml", BODY = OPENCV_HAAR + "/haarcascade_fullbody.xml")
 
 Lbp = enum(FRONTAL_FACE = "/usr/share/opencv/lbpcascades/lbpcascade_frontalface.xml", PROFILE_FACE = "/usr/share/opencv/lbpcascades/lbpcascade_profileface.xml")
@@ -35,80 +39,61 @@ VIDEO = "Temoin.mp4"
 FACE_TRACKER = None
 SKIPPED_FRAMES = 2
 
-def draw_boxes(image, boxes, color):
-    for x1, y1, x2, y2 in boxes:
-        cv2.rectangle(image, (x1, y1), (x2, y2), color, 5)
-
-def normalize_image(image):
-    normalized_image = cv2.cvtColor(image, cv.CV_RGB2GRAY)
-    normalized_image = cv2.equalizeHist(normalized_image)
-    return normalized_image
-
-def haar_cascade(image, xml):
-    normalized_image = normalize_image(image)
-    #display_image(normalized_image)
-    cascade_classifier = cv2.CascadeClassifier(xml)
-    boxes = cascade_classifier.detectMultiScale(normalized_image, scaleFactor = 1.3, minNeighbors = 4, minSize = (20, 20), flags = cv.CV_HAAR_SCALE_IMAGE)
-    if len(boxes) > 0:
-        boxes[:, 2:] += boxes[:, :2]
-    else:
-        boxes = []
-    return boxes
-
-class Frame(object):
-    
-    def __init__(self, id, array):
-        self.id = id
-        self.array = array
+def write_text(frame, text, coordinate, color):
+    cv2.putText(frame.array, text, coordinate, cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness = 2)
+    #return frame
 
 def read_frames_target(input_queue, output_queue, arguments):
-    source, width, height = arguments
-    frame_id = 1
-    while True:
-        frame_bytes = source.read(width * height * 3)
+    try:
+        source, width, height = arguments
+        frame_id = 1
+        while True:
+            frame_bytes = source.read(width * height * 3)
 
-        if frame_bytes == "":
-            break
-        frame_array= np.fromstring(frame_bytes, dtype = np.uint8).reshape((height, width, 3))
-        output_queue.put(Frame(frame_id, frame_array), block = True)
-        print "Frame %d read" % frame_id
-        frame_id += 1
+            if frame_bytes == "":
+                break
+            frame_array= np.fromstring(frame_bytes, dtype = np.uint8).reshape((height, width, 3))
+            output_queue.put(Frame(frame_id, frame_array), block = True)
+            frame_id += 1
+    except KeyboardInterrupt as e:
+        pass
         
 def detect_faces_target(input_queue, output_queue, arguments):
     while True:
-        frame = input_queue.get(block = True)
+        frame = interruptible_get(input_queue)
         if frame == "":
             break
-        frontal_face_boxes = haar_cascade(frame.array, Haar.FRONTAL_FACE)
-        #profile_face_boxes = haar_cascade(frame.array, Lbp.PROFILE_FACE)
-        #eye_boxes = []
-        #for face_box in face_boxes:
-        #    face_frame = crop_frame(frame.array, face_box)
-        #    eye_boxes = haar_cascade(face_frame, Haar.EYE)
-        #    nose_boxes = haar_cascade(face_frame, Haar.NOSE)
-        #    mouth_boxes = haar_cascade(face_frame, Haar.MOUTH)
-        #    draw_boxes(frame.array, eye_boxes, Color.GREEN)
-        #    draw_boxes(frame.array, nose_boxes, Color.YELLOW)
-        #    draw_boxes(frame.array, mouth_boxes, Color.BLUE)
-
-        draw_boxes(frame.array, frontal_face_boxes, Color.RED)
-        #draw_boxes(frame.array, profile_face_boxes, Color.GREEN)
-        output_queue.put(frame, block = True)
+        try:
+            for rectangle in FaceDetector.for_frame(frame).detect_faces():
+                frame = frame.draw_rectangle(rectangle, Color(255, 0, 0))
+            
+            output_queue.put(frame, block = True)
+        except:
+            pass
 
 def reorder_frames_target(input_queue, output_queue, arguments):
-    frame_buffer = []
-    expected_frame_id = 1
-    while True:
-        print "len(frame_buffer) = %d" % len(frame_buffer)
-        frame = input_queue.get(block = True)
-        if frame == "":
-            break
-        frame_buffer.append(frame)
-        frame_buffer.sort(key = lambda frame: frame.id)
-        while len(frame_buffer) > 0 and frame_buffer[0].id == expected_frame_id:
-            frame = frame_buffer.pop(0)
-            output_queue.put(frame, block = True)
-            expected_frame_id += 1
+    try:
+        frame_buffer = []
+        expected_frame_id = 1
+        while True:
+            frame = interruptible_get(input_queue)
+            if frame == "":
+                break
+            frame_buffer.append(frame)
+            frame_buffer.sort(key = lambda frame: frame.id)
+            while len(frame_buffer) > 0 and frame_buffer[0].id == expected_frame_id:
+                frame = frame_buffer.pop(0)
+                write_text(frame, "id = %d" % frame.id, (10, 50), Colors.WHITE)
+                output_queue.put(frame, block = True)
+                expected_frame_id += 1
+    except KeyboardInterrupt as e:
+        pass
+def interruptible_get(queue):
+    try:
+        return queue.get(block = True)
+    except KeyboardInterrupt as e:
+        return ""
+
 
 def display_frames_target(input_queue, output_queue, arguments):
     sink, = arguments
@@ -116,7 +101,7 @@ def display_frames_target(input_queue, output_queue, arguments):
     #    return
     print("sink = %s " % sink)
     while True:
-        frame = input_queue.get(block = True)
+        frame = interruptible_get(input_queue)
         if frame == "":
             break
         #cv2.imshow("Frame", frame.array)
@@ -160,6 +145,7 @@ def main(video):
     ##print read.stderr.read()
     write = ffmpeg_write(media_info)
     print write.stdin
+    FaceDetector.for_frame(Frame.blank(1, Size(200, 200))).detect_faces()
     #sleep(60)
     play = vlc_play(write.stdout)
     #play = cat(write.stdout, "GHOST.flv")

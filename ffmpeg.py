@@ -15,6 +15,7 @@ def ffmpeg_read(video, media_info):
         "-s", "%dx%d" % (media_info.width, media_info.height), 
         "-pix_fmt", "bgr24", 
         "-vcodec", "rawvideo", 
+        "-r", str(media_info.frame_rate / 4),
         "-"
     ]
     #print "ffmpeg_read = %s" % " ".join(command)
@@ -27,7 +28,7 @@ def ffmpeg_write(media_info):
         "-f", "rawvideo", 
         "-s", "%dx%d" % (media_info.width, media_info.height),
         "-pix_fmt", "bgr24", 
-        "-r", str(media_info.frame_rate), 
+        "-r", str(media_info.frame_rate / 4), 
         "-i", "-", 
         "-an", 
         "-vcodec", "flv",
