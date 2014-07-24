@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     RING_BUFFER = RingBuffer(150)
     for frame_id in range(500):
-        frame = Frame.blank(frame_id, size = Size(400, 200))
+        frame = Frame(frame_id, Image.blank(size = Size(400, 200)))
         if MIN_FRAME_ID < frame_id < MAX_FRAME_ID:
             print frame_id
             rectangle = None
@@ -60,15 +60,15 @@ if __name__ == "__main__":
             rectangle = Rectangle(position, size)
             if frame_id == MAX_FRAME_ID + 10:
                 for i, r in filter(lambda p: p[0] >= MIN_FRAME_ID, enumerate(Rectangle.interpolate(map(lambda p: p[1], filter(lambda p: MIN_FRAME_ID -10 <= p[0] <= MAX_FRAME_ID +10, RING_BUFFER.to_list() + [(frame_id, rectangle)]))), start = MIN_FRAME_ID)):
-                    Frame.blank(i, Size(400, 200)).draw_rectangle(r, INTERPOLATE_COLOR).show(wait_delay = 5)
+                    Frame(i, Image.blank(Size(400, 200)).draw_rectangle(r, INTERPOLATE_COLOR)).image.show(wait_delay = 5)
             else:
-                frame = frame.draw_rectangle(rectangle, FOUND_COLOR)
+                frame = Frame(frame_id, frame.image.draw_rectangle(rectangle, FOUND_COLOR))
             found = True
     
         RING_BUFFER.enqueue((frame_id, rectangle))
 
         if MIN_FRAME_ID >= frame_id or frame_id > MAX_FRAME_ID + 10:
-            frame.show(wait_delay = 5)
+            frame.image.show(wait_delay = 5)
         position, size = move_randomly(position, size)
 
 

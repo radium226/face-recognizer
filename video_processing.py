@@ -14,9 +14,9 @@ import threading as t
 import multiprocessing as mp
 import functools as f
 import pickle
-from PIL import Image
+import traceback
 
-from commons import Frame, Size, Color
+from commons import Frame, Size, Color, Image
 from detectors import FaceDetector
 
 def pack(o):
@@ -40,7 +40,7 @@ FACE_TRACKER = None
 SKIPPED_FRAMES = 2
 
 def write_text(frame, text, coordinate, color):
-    cv2.putText(frame.array, text, coordinate, cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness = 2)
+    cv2.putText(frame.image.array, text, coordinate, cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness = 2)
     #return frame
 
 def read_frames_target(input_queue, output_queue, arguments):
@@ -53,10 +53,13 @@ def read_frames_target(input_queue, output_queue, arguments):
             if frame_bytes == "":
                 break
             frame_array= np.fromstring(frame_bytes, dtype = np.uint8).reshape((height, width, 3))
-            output_queue.put(Frame(frame_id, frame_array), block = True)
+            frame = Frame(frame_id, Image(frame_array))
+            output_queue.put(frame, block = True)
             frame_id += 1
     except KeyboardInterrupt as e:
         pass
+    except:
+        traceback.print_exc(file=sys.stdout)
         
 def detect_faces_target(input_queue, output_queue, arguments):
     while True:
@@ -64,12 +67,13 @@ def detect_faces_target(input_queue, output_queue, arguments):
         if frame == "":
             break
         try:
-            for rectangle in FaceDetector.for_frame(frame).detect_faces():
-                frame = frame.draw_rectangle(rectangle, Color(255, 0, 0))
+            for rectangle in FaceDetector.for_image(frame.image).detect_faces():
+                frame = Frame(frame.id, frame.image.draw_rectangle(rectangle, Color(255, 0, 0)))
             
             output_queue.put(frame, block = True)
         except:
-            pass
+            traceback.print_exc(file=sys.stdout)
+
 
 def reorder_frames_target(input_queue, output_queue, arguments):
     try:
@@ -88,6 +92,9 @@ def reorder_frames_target(input_queue, output_queue, arguments):
                 expected_frame_id += 1
     except KeyboardInterrupt as e:
         pass
+    except:
+        traceback.print_exc(file=sys.stdout)
+
 def interruptible_get(queue):
     try:
         return queue.get(block = True)
@@ -106,7 +113,7 @@ def display_frames_target(input_queue, output_queue, arguments):
             break
         #cv2.imshow("Frame", frame.array)
         #cv2.waitKey(1)
-        sink.write(frame.array.tostring())
+        sink.write(frame.image.array.tostring())
 
 def detect(source, sink, media_info):
     read_frames_queue = mp.Queue(maxsize = 100)
@@ -125,18 +132,6 @@ def detect(source, sink, media_info):
     display_frames_thread.start()
     #display_frames_target(reorder_frames_queue, None, (sink))
     
-def crop_frame(frame, box):
-    x1, y1, x2, y2 = box
-    mask = np.zeros(frame.shape, dtype=np.uint8)
-    roi_corners = np.array([[(x1,y1), (x1,y2), (x2,y2), (x2, y1)]], dtype=np.int32)
-    white = (255, 255, 255)
-    cv2.fillPoly(mask, roi_corners, white)
-
-    # apply the mask
-    masked_image = cv2.bitwise_and(frame, mask)
-    return masked_image
-
-
 def main(video):
     media_info = MediaInfo(video)
     read = ffmpeg_read(video, media_info)
@@ -145,7 +140,7 @@ def main(video):
     ##print read.stderr.read()
     write = ffmpeg_write(media_info)
     print write.stdin
-    FaceDetector.for_frame(Frame.blank(1, Size(200, 200))).detect_faces()
+    #FaceDetector.for_frame(Frame.blank(1, Size(200, 200))).detect_faces()
     #sleep(60)
     play = vlc_play(write.stdout)
     #play = cat(write.stdout, "GHOST.flv")

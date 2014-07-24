@@ -18,15 +18,15 @@ Cascades = enum(
 
 class FaceDetector(object):
 
-    def __init__(self, frame):
-        self.frame = frame
+    def __init__(self, image):
+        self.image = image
 
     @staticmethod
-    def for_frame(frame):
-        return FaceDetector(frame)
+    def for_image(image):
+        return FaceDetector(image)
     
     def detect_faces(self, cascade = Cascades.FRONTAL_FACE):
-        array = cv2.cvtColor(self.frame.array, cv.CV_RGB2GRAY)
+        array = cv2.cvtColor(self.image.array, cv.CV_RGB2GRAY)
         array = cv2.equalizeHist(array)
         cascade_classifier = cv2.CascadeClassifier(cascade)
         boxes = cascade_classifier.detectMultiScale(
