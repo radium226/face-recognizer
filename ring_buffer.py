@@ -15,7 +15,6 @@ class RingBuffer:
     def add_item(self, item):
         self.deque.append(item)
 
-
     def last_items(self, length):
         return [self.deque[i] for i in map(lambda index: index + len(self.deque) - length, range(length))]
 
@@ -46,6 +45,9 @@ class RingBuffer:
     def last_item_groups(self, count, grouper = none_grouper):
         item_groups = self.item_groups(grouper)
         return item_groups[len(item_groups) - count:len(item_groups)]
+    
+    def last_item_group(self, grouper = none_grouper):
+        return self.last_item_groups(1, grouper)[0]
 
 if __name__ == "__main__":
     rb = RingBuffer(10)
