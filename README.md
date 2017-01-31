@@ -1,2 +1,2 @@
-# video-miner
-Video Miner :vhs:
+# Video Miner :vhs:
+
