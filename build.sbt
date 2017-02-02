@@ -14,4 +14,7 @@ libraryDependencies += "ch.qos.logback" % "logback-core" % "1.1.9"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.9"
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.22"
 
+libraryDependencies ++= Seq("org.scalanlp" %% "breeze" % "0.12", "org.scalanlp" %% "breeze-natives" % "0.12")
+resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
+
 unmanagedJars in Compile += file("/usr/share/java/opencv.jar")

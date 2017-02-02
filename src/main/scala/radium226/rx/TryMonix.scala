@@ -9,8 +9,6 @@ import scala.concurrent.Await
   */
 object TryMonix {
 
-  def main(arguments: Array[String]): Unit = {
-    Await.result(Observable(3, 1, 2, 0, 5).toListL)
-  }
+
 
 }

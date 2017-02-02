@@ -4,8 +4,9 @@ import java.io.{DataInputStream, EOFException, InputStream}
 import javafx.scene.image.{Image, PixelFormat, WritableImage}
 
 import org.opencv.core._
-import org.opencv.core.{ Size => OpenCVSize }
+import org.opencv.core.{Size => OpenCVSize}
 import org.opencv.imgproc.Imgproc
+import org.opencv.objdetect.CascadeClassifier
 
 import scala.collection.JavaConverters._
 
@@ -48,6 +49,12 @@ object Implicits {
   }
 
   implicit class MatWithMoreMethods(mat: Mat) {
+
+    def detectMultiScale(cascadeClassifier: CascadeClassifier): Array[Rect] = {
+      val rectsAsMatOfRect = new MatOfRect()
+      cascadeClassifier.detectMultiScale(mat, rectsAsMatOfRect)
+      rectsAsMatOfRect.toArray
+    }
 
     def toBGRByteArray(): BGRByteArray = {
       val bgrByteArray: BGRByteArray = Array.fill[Byte](mat.width() * mat.height() * mat.channels()) { 0 }
