@@ -24,9 +24,9 @@ object TryToProcessInParallel {
 
     Await.ready(cancelable, Duration.Inf)*/
 
-    val rateLimiter = RateLimiter.create(1)
+    val rateLimiter = RateLimiter.create(1000)
 
-    val computationScheduler = Scheduler.computation(3)
+    val computationScheduler = Scheduler.computation(10)
 
     val outputFilePath = Paths.get("/home/adrien/Personal/Projects/video-miner/src/main/resources/output.txt")
     val outputFileWriter = Files.newBufferedWriter(outputFilePath, StandardOpenOption.TRUNCATE_EXISTING)
@@ -64,6 +64,14 @@ object TryToProcessInParallel {
     doubles.connect()
     println("Started! ")
 
+    doubles
+      .scan(0d)({ (summedDouble, double) =>
+        summedDouble + double
+      })
+      .foreach({ summedDouble =>
+        println(s"SUM=${summedDouble}")
+      })
+
     println("Waiting...")
     Await.ready(cancelable, Duration.Inf)
     println("Done!")
@@ -76,17 +84,17 @@ object TryToProcessInParallel {
     computedDouble
   }
 
-  def powOfTwo = compute(1 second) { double =>
+  def powOfTwo = compute(0.25 seconds) { double =>
     Logger.info("Computing pow({}, 2)", double)
     math.pow(double, 2)
   }
 
-  def multiplyByTwo = compute(2 seconds) { double =>
+  def multiplyByTwo = compute(0.25 seconds) { double =>
     Logger.info("Computing {} * 2", double)
     double * 2
   }
 
-  def divideByTwo = compute(3 seconds) { double =>
+  def divideByTwo = compute(0.25 seconds) { double =>
     Logger.info("Computing {} / 2", double)
     double / 2
   }
