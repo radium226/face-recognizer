@@ -1,0 +1,189 @@
+#include <jni.h>
+#include "include/radium_Adder.h"
+
+#include <dlib/image_processing/frontal_face_detector.h>
+#include <dlib/image_processing.h>
+
+#include <vector>
+
+using namespace dlib;
+using namespace std;
+
+class Size
+{
+    public:
+        Size(int, int);
+        int width();
+        int height();
+        jobject to_jobject(JNIEnv *jniEnv);
+
+    private:
+        int width_;
+        int height_;
+};
+
+class Point
+{
+    public:
+        explicit Point(dlib::point dlib_point);
+        Point(int, int);
+        int x();
+        int y();
+        jobject to_jobject(JNIEnv *jniEnv);
+
+    private:
+        int x_;
+        int y_;
+};
+
+class Rectangle
+{
+    public:
+        explicit Rectangle(dlib::rectangle dlib_rectangle);
+        Rectangle(Point *, Size *);
+        Size *size();
+        Point *position();
+        jobject to_jobject(JNIEnv *);
+
+    private:
+        Size *size_;
+        Point *position_;
+
+};
+
+template<typename T>
+jobject vector_to_jobject(JNIEnv *jni_env, std::vector<T> vect, jobject (*val_conv)(T))
+{
+    jclass list_class = jni_env->FindClass("java/util/ArrayList");
+    jmethodID list_constructor_method = jni_env->GetMethodID(list_class, "<init>", "()V");
+    jobject list_instance = jni_env->NewObject(list_class, list_constructor_method);
+    jmethodID list_add_method = jni_env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z");
+    for(auto val: vect) {
+        jni_env->CallObjectMethod(list_instance, list_add_method, val_conv(val));
+    }
+    return list_instance;
+}
+
+Size::Size(int width, int height)
+{
+    width_ = width;
+    height_ = height;
+}
+
+int Size::width()
+{
+    return width_;
+}
+
+int Size::height()
+{
+    return height_;
+}
+
+jobject Size::to_jobject(JNIEnv *jniEnv)
+{
+    jclass size_class = (*jniEnv).FindClass("radium/Size");
+    jmethodID size_class_constructor = (*jniEnv).GetMethodID(size_class, "<init>", "(II)V");
+    jobject size_instance = (*jniEnv).NewObject(size_class, size_class_constructor, width(), height());
+    return size_instance;
+}
+
+Point::Point(dlib::point dlib_point)
+{
+    x_ = dlib_point.x();
+    y_ = dlib_point.y();
+}
+
+Point::Point(int x, int y)
+{
+    x_ = x;
+    y_ = y;
+}
+
+int Point::x()
+{
+    return x_;
+}
+
+int Point::y()
+{
+    return y_;
+}
+
+
+
+jobject Point::to_jobject(JNIEnv *jniEnv)
+{
+    jclass point_class = (*jniEnv).FindClass("radium/Point");
+    jmethodID point_class_constructor = (*jniEnv).GetMethodID(point_class, "<init>", "(II)V");
+    jobject point_instance = (*jniEnv).NewObject(point_class, point_class_constructor, x(), y());
+    return point_instance;
+}
+
+Rectangle::Rectangle(rectangle dlib_rectangle)
+{
+    int x = dlib_rectangle.left();
+    int y = dlib_rectangle.top();
+    int width = dlib_rectangle.right() - dlib_rectangle.left();
+    int height = dlib_rectangle.bottom() - dlib_rectangle.top();
+
+    position_ = new Point(x, y);
+    size_ = new Size(width, height);
+}
+
+Rectangle::Rectangle(Point *position, Size *size)
+{
+    position_ = position;
+    size_ = size;
+}
+
+jobject Rectangle::to_jobject(JNIEnv *jniEnv)
+{
+    jclass rectangle_class = (*jniEnv).FindClass("radium/Rectangle");
+    jmethodID rectangle_class_constructor = (*jniEnv).GetMethodID(rectangle_class, "<init>", "(Lradium/Point;Lradium/Size;)V");
+    jobject rectangle_instance = (*jniEnv).NewObject(rectangle_class, rectangle_class_constructor, position() -> to_jobject(jniEnv), size() -> to_jobject(jniEnv));
+    return rectangle_instance;
+    //return NULL;
+}
+
+Point *Rectangle::position()
+{
+    return position_;
+}
+
+Size *Rectangle::size()
+{
+    return size_;
+}
+
+
+
+JNIEXPORT jobject JNICALL Java_radium_Adder_toPoint(JNIEnv *jniEnv, jobject instance, jint x, jint y)
+{
+    Point p(x, y);
+    jobject o = p.to_jobject(jniEnv);
+    return o;
+}
+
+JNIEXPORT jobject JNICALL Java_radium_Adder_toRectangle(JNIEnv *jniEnv, jobject instance)
+{
+    rectangle dr(1, 2, 3, 4);
+    Rectangle r = (Rectangle) dr;
+    jobject jr = r.to_jobject(jniEnv);
+    return jr;
+}
+
+
+
+JNIEXPORT jint JNICALL Java_radium_Adder_add(JNIEnv *jniEnv, jobject instance, jint left, jint right)
+{
+    //frontal_face_detector detector = get_frontal_face_detector();
+
+    //rectange face_rectangle = null
+
+    shape_predictor predictor;
+    //deserialize() >> predictor
+    //vector<full_object_detection> shapes = predictor(face_rectangle)
+
+    return left + right;
+}
