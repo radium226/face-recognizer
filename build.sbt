@@ -43,6 +43,16 @@ lazy val openCvUnmanagedJars = Seq(
 lazy val root = (project in file("."))
   .aggregate(dlib, examples)
 
+lazy val akkaActorDependencies = Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.5.0",
+  "com.typesafe.akka" %% "akka-testkit" % "2.5.0"
+)
+
+lazy val akkaStreamDependencies = Seq(
+  "com.typesafe.akka" %% "akka-stream" % "2.5.2",
+  "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.2" % Test
+)
+
 lazy val examples = (project in file("examples"))
   .settings(
     name := "examples",
@@ -52,14 +62,7 @@ lazy val examples = (project in file("examples"))
     libraryDependencies ++= loggingDependencies,
     libraryDependencies ++= httpClientDependencies,
     libraryDependencies ++= htmlUnitDepdendencies,
-    unmanagedJars in Compile ++= openCvUnmanagedJars
-  )
-
-lazy val dlib = (project in file("dlib"))
-  .enablePlugins(JniNative)
-  .settings(
-    name := "dlib",
-    commonSettings,
-    target in javah := (sourceDirectory in nativeCompile).value / "include",
+    libraryDependencies ++= akkaActorDependencies,
+    libraryDependencies ++= akkaStreamDependencies,
     unmanagedJars in Compile ++= openCvUnmanagedJars
   )

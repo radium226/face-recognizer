@@ -18,7 +18,7 @@ public class TryToPlayVideoRx extends Application {
     final public static String PALMASHOW_URL = "https://www.youtube.com/watch?v=6Jyes8Hzwn4";
 
     public void start(Stage stage) throws Exception {
-        System.load("/usr/share/opencv/java/libopencv_java310.so");
+        System.load("/usr/share/opencv/java/libopencv_java320.so");
 
         int width = 500;
         int height = 300;

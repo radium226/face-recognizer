@@ -10,6 +10,7 @@ import radium226.VideoApplication
 object TryToDetectFaces {
 
   def main(arguments: Array[String]): Unit = {
+    System.load("/usr/share/opencv/java/libopencv_java320.so")
     Application.launch(classOf[VideoApplication], arguments: _*)
   }
 

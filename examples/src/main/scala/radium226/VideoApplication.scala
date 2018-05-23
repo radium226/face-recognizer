@@ -27,7 +27,7 @@ class VideoApplication extends Application {
   val HaarCascadeParentFolderPath = Paths.get("/usr/share/opencv/haarcascades")
 
   override def start(stage: Stage): Unit = {
-    System.load("/usr/share/opencv/java/libopencv_java310.so")
+    System.load("/usr/share/opencv/java/libopencv_java320.so")
 
     //val width = 500
     //val height = 200

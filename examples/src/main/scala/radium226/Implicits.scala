@@ -125,6 +125,10 @@ object Implicits {
       Ratio(double / 100d, double / 100d)
     }
 
+    def percents(): Ratio = {
+      Ratio(double / 100d, double / 100d)
+    }
+
   }
 
   implicit class PairOfIntWithMoreMethods(pair: (Int, Int)) {
