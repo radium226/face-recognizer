@@ -2,6 +2,7 @@ package com.github.radium226.video.io;
 
 import com.github.radium226.commons.io.InputStreamWithHeader;
 import com.github.radium226.commons.io.InputStreams;
+import com.github.radium226.video.VideoMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
