@@ -19,19 +19,23 @@ class VideoSpec extends AbstractSpec {
   behavior of "Video"
 
   it should "work fine" in {
+    info("Initializing Akka... ")
     implicit val actorSystem = ActorSystem()
     implicit val actorMaterializer = ActorMaterializer()
 
+    info("Creating a source of Mat... ")
     val source = Video.fromInputStream({ () => MockVideo.openInputStream(5.minutes) })
 
+    info("Printing each second... ")
     val done = source
       .zipWithIndex
       .runForeach({ case (mat, index) =>
         if ((index + 1) % 25 == 0) {
-          info("We are at {} s", (index + 1) / 25)
+          info("We are at {}", ((index + 1) / 25).seconds)
         }
       })
 
+    info("Waiting for the source to be done... ")
     Await.result(done, Duration.Inf)
     info("Done! ")
   }
