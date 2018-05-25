@@ -1,4 +1,4 @@
-package com.github.radium226.video.io;
+package com.github.radium226.video;
 
 import java.io.IOException;
 
