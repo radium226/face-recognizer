@@ -1,6 +1,6 @@
 lazy val videoStream = (project in file("video-stream"))
   .settings(Settings.commons)
-  .settings(name := "ffmpeg")
+  .settings(name := "video-stream")
   .settings(libraryDependencies ++= Dependencies.akkaActor)
   .settings(libraryDependencies ++= Dependencies.akkaStream)
   .settings(libraryDependencies ++= Dependencies.openCV)
