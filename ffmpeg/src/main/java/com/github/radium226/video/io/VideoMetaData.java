@@ -1,4 +1,4 @@
-package com.github.radium226;
+package com.github.radium226.video.io;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.io.CharStreams;
@@ -133,7 +133,7 @@ public class VideoMetaData {
 
                 @Override
                 public boolean processLine(String line) throws IOException {
-                    LOGGER.debug("processLine(line={})", line);
+                    System.out.println("line=" + line);
                     String regex = "^(height|width)=([0-9]+)$";
                     Pattern pattern = Pattern.compile(regex);
                     Matcher matcher = pattern.matcher(line);
@@ -160,10 +160,12 @@ public class VideoMetaData {
 
         try {
             VideoMetaData videoMetaData = parseVideoMetaDataFuture.get(1, TimeUnit.MINUTES);
+            LOGGER.debug("About to shutdown parseVideoMetaDataExecutor");
             parseVideoMetaDataExecutor.shutdown();
 
             // Let's cleanup what's remain
             //pipeToFFProbeFuture.get();
+            LOGGER.debug("About to shutdown pipeToFFProbeExecutor");
             pipeToFFProbeExecutor.shutdown();
 
             try {
