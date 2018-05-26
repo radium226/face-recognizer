@@ -49,6 +49,8 @@ public class VideoInputStream extends InputStream {
     }
 
     private static String[] ffmpegCommand(int width, int height) {
+        width = 320;
+        height = 180;
         return new String[] {
                 "ffmpeg",
                 "-i", "-",

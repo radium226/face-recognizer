@@ -46,4 +46,8 @@ object Dependencies {
     "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
   )
 
+  def caffeine = Seq(
+    "com.github.ben-manes.caffeine" % "caffeine" % "2.6.2"
+  )
+
 }

@@ -17,8 +17,8 @@ class MatSourceGraphStage(openInputStream: () => InputStream, closeInputStream: 
     val inputStream = openInputStream()
     val videoInputStream = new VideoInputStream(inputStream)
 
-    val width = videoInputStream.getMetaData.getWidth
-    val height = videoInputStream.getMetaData.getHeight
+    val width = 320//videoInputStream.getMetaData.getWidth
+    val height = 180//videoInputStream.getMetaData.getHeight
 
     info("The detected size is {}x{}", width, height)
 

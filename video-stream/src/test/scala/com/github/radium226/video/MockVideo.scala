@@ -5,7 +5,10 @@ import java.io.InputStream
 import ProcessBuilder.Redirect
 import java.nio.file.{Path, Paths}
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import com.github.radium226.logging.Logging
+import org.opencv.core.Mat
 
 object MockVideo extends Logging {
 
@@ -30,6 +33,10 @@ object MockVideo extends Logging {
     process.getInputStream
   }
 
-
+  def source(duration: Time): Source[Mat, NotUsed] = {
+    Video.fromInputStream({ () =>
+      openInputStream(duration)
+    })
+  }
 
 }
