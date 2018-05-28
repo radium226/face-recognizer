@@ -1,5 +1,0 @@
-#!/bin/bash
-
-convert \( "${1}" -channel R -separate \) \
-	\( "${1}" -channel G -separate \) \
-	\( "${1}" -channel B -separate \) -channel BGR -combine "${2}"

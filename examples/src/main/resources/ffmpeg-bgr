@@ -1,9 +1,0 @@
-#!/bin/bash
-
-youtube-dl "https://www.youtube.com/watch?v=JIoDqXnc5zM" -o - | ffmpeg \
-    -i - \
-    -f "image2pipe" \
-    -s "200x100" \
-    -pix_fmt "bgr24" \
-    -vcodec "rawvideo" \
-    "-" #| mplayer -
