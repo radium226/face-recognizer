@@ -2,9 +2,8 @@ package com.github.radium226.opencv
 
 import java.nio.file.Path
 
-import org.opencv.core.{Mat, MatOfRect, Point, Rect, Scalar}
-import com.github.radium266.dlib.swig.ShapePredictor
-import org.opencv.core.Point
+import org.opencv.core.{Mat, MatOfRect, Point, Rect, Scalar, Size}
+import com.github.radium266.dlib.swig.{FaceDetector, ShapePredictor}
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import org.opencv.objdetect.CascadeClassifier
@@ -19,6 +18,8 @@ trait OpenCVImplicits {
 
     val faceCascadeClassifier = new CascadeClassifier("/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml")
 
+
+    val faceDetector = new FaceDetector()
   }
 
   implicit class PimpedMat(mat: Mat) {
@@ -27,6 +28,8 @@ trait OpenCVImplicits {
       val detectedRects = new MatOfRect()
       PimpedMat.faceCascadeClassifier.detectMultiScale(mat, detectedRects)
       detectedRects.toArray
+
+      //PimpedMat.faceDetector.detectFaces(mat).asScala
     }
 
     def predictFaceLandmarks(rect: Rect): Seq[Point] = {
@@ -43,8 +46,23 @@ trait OpenCVImplicits {
       })
     }
 
+    def drawRect(rect: Rect): Mat = {
+      Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(255, 255, 0))
+      mat
+    }
+
+    def drawRects(rects: Seq[Rect]): Mat = {
+      rects.foldLeft(mat)({ (mat, rect) => mat.drawRect(rect) })
+    }
+
     def saveTo(filePath: Path): Unit = {
       Imgcodecs.imwrite(filePath.toString, mat)
+    }
+
+    def resize(width: Int, height: Int): Mat = {
+      val newMat = new Mat()
+      Imgproc.resize(mat, newMat, new Size(width, height))
+      newMat
     }
 
   }

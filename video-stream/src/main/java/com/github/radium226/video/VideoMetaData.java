@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
@@ -99,6 +100,69 @@ public class VideoMetaData {
         }
     }
 
+    public static VideoMetaData of(Path filePath) throws IOException {
+        Process ffprobeProcess = new ProcessBuilder(new String[] { "ffprobe", "-v", "error", "-i", filePath.toString(), "-show_entries", "stream=height,width" })
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
+            .start();
+
+        InputStream ffprobeProcessInputStream = ffprobeProcess.getInputStream();
+
+        // We read the stdout of ffprobe and parse in order to obtain the VideoMetaData
+        ExecutorService parseVideoMetaDataExecutor = Executors.newSingleThreadExecutor();
+        Future<VideoMetaData> parseVideoMetaDataFuture = parseVideoMetaDataExecutor.submit(() -> {
+            return CharStreams.readLines(new InputStreamReader(ffprobeProcessInputStream), new LineProcessor<VideoMetaData>() {
+
+                private Builder builder = VideoMetaData.builder();
+
+                @Override
+                public boolean processLine(String line) throws IOException {
+                    System.out.println("line=" + line);
+                    String regex = "^(height|width)=([0-9]+)$";
+                    Pattern pattern = Pattern.compile(regex);
+                    Matcher matcher = pattern.matcher(line);
+                    if (matcher.matches()) {
+                        switch (matcher.group(1)) {
+                            case "width":
+                                builder.width(Integer.valueOf(matcher.group(2)));
+                                break;
+                            case "height":
+                                builder.height(Integer.valueOf(matcher.group(2)));
+                        }
+                    }
+
+                    return !builder.canBuild();
+                }
+
+                @Override
+                public VideoMetaData getResult() {
+                    return builder.build();
+                }
+
+            });
+        });
+
+        try {
+            VideoMetaData videoMetaData = parseVideoMetaDataFuture.get(1, TimeUnit.MINUTES);
+            LOGGER.debug("About to shutdown parseVideoMetaDataExecutor");
+            parseVideoMetaDataExecutor.shutdown();
+
+            try {
+                int exitCode = ffprobeProcess.waitFor();
+                if (exitCode > 0) {
+                    throw new MetaDataException("The ffprobe process exited " + Integer.toString(exitCode));
+                }
+            } catch (IllegalThreadStateException e) {
+                throw new MetaDataException("Something may be wrong with the provided InputStream", e);
+            }
+
+            return videoMetaData;
+        } catch (TimeoutException e) {
+            throw new MetaDataException("The parsing of the meta data took too much time", e);
+        } catch (Exception e) {
+            throw new MetaDataException("Something appended while parsing the meta data", e);
+        }
+    }
+
     public static VideoMetaData of(ByteBuffer byteBuffer) throws IOException {
         byte[] byteArray = new byte[byteBuffer.remaining()];
         byteBuffer.get(byteArray);
@@ -106,6 +170,7 @@ public class VideoMetaData {
     }
 
     public static VideoMetaData of(InputStream inputStream) throws IOException {
+        LOGGER.info("Starting ffprobe process... ");
         Process ffprobeProcess = new ProcessBuilder(FFPROBE_COMMAND)
                 .redirectError(ProcessBuilder.Redirect.INHERIT)
             .start();

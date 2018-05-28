@@ -32,6 +32,8 @@ public class InputStreams {
         byte[] actualHeaderByteArray = new byte[actualHeaderSize];
         System.arraycopy(expectedHeaderByteArray, 0, actualHeaderByteArray, 0, actualHeaderSize);
 
+        LOGGER.info("Header as been filled! ");
+
         return new InputStreamWithHeader(inputStream, actualHeaderByteArray);
     }
 

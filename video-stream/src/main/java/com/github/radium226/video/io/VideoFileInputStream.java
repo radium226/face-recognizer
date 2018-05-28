@@ -8,26 +8,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 /**
  * Created by adrien on 1/29/17.
  */
-public class VideoInputStream extends AbstractVideoInputStream {
+public class VideoFileInputStream extends AbstractVideoInputStream {
 
-    final private static Logger LOGGER = LoggerFactory.getLogger(VideoInputStream.class);
+    final private static Logger LOGGER = LoggerFactory.getLogger(VideoFileInputStream.class);
 
-    final public static int HEADER_SIZE = 1024 * 1024 * 5; // 5MB
+    private Path filePath;
 
-    private InputStream inputStream;
-
-    private InputStreamWithHeader inputStreamWithHeader = null;
-    private InputStream inputStreamThroughProcess = null;
     private VideoMetaData metaData;
 
-    public VideoInputStream(InputStream inputStream) throws IOException {
+    private InputStream inputStreamThroughProcess = null;
+
+    public VideoFileInputStream(Path filePath) throws IOException {
         super();
 
-        this.inputStream = inputStream;
+        this.filePath = filePath;
     }
 
     public void initInputStreamThroughProcess() throws IOException {
@@ -38,22 +37,22 @@ public class VideoInputStream extends AbstractVideoInputStream {
 
         int width = metaData.getWidth();
         int height = metaData.getHeight();
-        String[] ffmpegCommand = ffmpegCommand(width, height);
+        String[] ffmpegCommand = ffmpegCommand(filePath, width, height);
 
         Process ffmpegProcess = new ProcessBuilder()
                 .redirectError(ProcessBuilder.Redirect.INHERIT)
                 .command(ffmpegCommand)
             .start();
 
-        inputStreamThroughProcess = InputStreams.throughProcess(inputStreamWithHeader, ffmpegProcess);
+        inputStreamThroughProcess = ffmpegProcess.getInputStream();
     }
 
-    private static String[] ffmpegCommand(int width, int height) {
+    private static String[] ffmpegCommand(Path filePath, int width, int height) {
         //width = 320;
         //height = 180;
         return new String[] {
                 "ffmpeg",
-                "-i", "-",
+                "-i", filePath.toString(),
                 "-f", "image2pipe",
                 "-s", width + "x" + height,
                 "-pix_fmt", "bgr24",
@@ -63,10 +62,9 @@ public class VideoInputStream extends AbstractVideoInputStream {
     }
 
     public VideoMetaData getMetaData() throws IOException {
-        if (inputStreamWithHeader == null) {
-            inputStreamWithHeader = InputStreams.withHeader(inputStream, HEADER_SIZE);
+        if (metaData == null) {
             LOGGER.info("Getting metadata... ");
-            metaData = VideoMetaData.of(inputStreamWithHeader.getHeader());
+            metaData = VideoMetaData.of(filePath);
         }
 
         return metaData;
@@ -113,7 +111,7 @@ public class VideoInputStream extends AbstractVideoInputStream {
     }
 
     public void close() throws IOException {
-        inputStreamWithHeader.close();
+        //inputStreamWithHeader.close();
     }
 
 }

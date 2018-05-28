@@ -5,20 +5,19 @@ import java.io.InputStream
 import akka.stream.{Attributes, Outlet, SourceShape}
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import com.github.radium226.logging.Logging
-import com.github.radium226.video.io.VideoInputStream
+import com.github.radium226.video.io.{AbstractVideoInputStream, VideoInputStream}
 import org.opencv.core.{CvType, Mat}
 
-class MatSourceGraphStage(openInputStream: () => InputStream, closeInputStream: Boolean = false) extends GraphStage[SourceShape[Mat]] with Logging {
+class MatSourceGraphStage(openVideoInputStream: () => AbstractVideoInputStream, closeInputStream: Boolean = false) extends GraphStage[SourceShape[Mat]] with Logging {
 
   val out: Outlet[Mat] = Outlet("mat")
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
-    val inputStream = openInputStream()
-    val videoInputStream = new VideoInputStream(inputStream)
+    val videoInputStream = openVideoInputStream()
 
-    val width = 320//videoInputStream.getMetaData.getWidth
-    val height = 180//videoInputStream.getMetaData.getHeight
+    val width = videoInputStream.getMetaData.getWidth
+    val height = videoInputStream.getMetaData.getHeight
 
     info("The detected size is {}x{}", width, height)
 
@@ -43,9 +42,6 @@ class MatSourceGraphStage(openInputStream: () => InputStream, closeInputStream: 
             debug("Completing MatSourceGraphStage")
             completeStage()
             videoInputStream.close()
-            if (closeInputStream) {
-              inputStream.close()
-            }
           } else {
             debug("before assigning readByteTotalCount")
             readByteTotalCount = readByteTotalCount + readByteCount

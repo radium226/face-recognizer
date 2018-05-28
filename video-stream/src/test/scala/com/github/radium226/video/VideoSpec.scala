@@ -151,4 +151,29 @@ class VideoSpec extends AbstractSpec {
 
     pipe(PipeSource.existingInputStream(inputStream), PipeFlow.existingProcess(ffplayProcess)).toScala
   }
+
+  it should "be able to play a video" in {
+    val source = Video.fromInputStream({ () => MockVideo.openInputStream(10.seconds) })
+    val future = source.runWith(Video.play(Player.ffplay))
+    Await.result(future, Duration.Inf)
+  }
+
+  it should "be able to save a video" in {
+    val url = new URL("https://www.youtube.com/watch?v=93hq0YU3Gqk")
+    val tempFilePath = Files.createTempFile("VideoSpec", ".webm")
+
+    info(s"Saving video to ${tempFilePath}")
+    val doneFuture = YouTube.source(url)
+      .zipWithIndex
+      .collect({
+        case (mat, index) if index <= 25 * 2 =>
+          mat
+      })
+      .runWith(Video.save(tempFilePath, Format.webM))
+
+    info("Waiting for video save... ")
+    Await.result(doneFuture, Duration.Inf)
+    info("Done! ")
+  }
+
 }
