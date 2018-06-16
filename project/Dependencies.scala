@@ -14,7 +14,8 @@ object Dependencies {
   )
 
   def dlib = Seq(
-    "com.github.radium226" % "dlib-java" % "1.0-SNAPSHOT"
+    "com.github.radium226" % "dlib" % "1.0-SNAPSHOT",
+    "com.github.radium226" % "dlib-models" % "1.0-SNAPSHOT"
   )
 
   def openCV = Seq(
@@ -48,6 +49,15 @@ object Dependencies {
 
   def caffeine = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % "2.6.2"
+  )
+
+  def nuProcess = Seq(
+    "com.zaxxer" % "nuprocess" % "1.2.3"
+  )
+
+  def breeze = Seq(
+    "org.scalanlp" %% "breeze" % "0.13.2"
+
   )
 
 }

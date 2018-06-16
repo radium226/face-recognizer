@@ -17,4 +17,8 @@ abstract class AbstractSpec extends FlatSpec with Logging with BeforeAndAfterAll
     Await.result(future, Duration.Inf)
   }
 
+  def await(duration: Duration): Unit = {
+    Thread.sleep(duration.toMillis)
+  }
+
 }

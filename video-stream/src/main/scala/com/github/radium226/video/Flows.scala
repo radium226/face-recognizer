@@ -13,7 +13,7 @@ object Flows extends Logging {
   def focusOnFaces: Flow[Mat, Mat, NotUsed] = {
     Flow[Mat]
       .map({ mat =>
-        info("Detecting faces... ")
+        info("Detecting known-faces... ")
         (mat, mat.detectFaces())
       })
       .map({ case (mat, rects) =>

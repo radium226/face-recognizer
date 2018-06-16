@@ -14,7 +14,7 @@ trait OpenCVImplicits {
 
   object PimpedMat {
 
-    val faceLandmarksShapePredictor = new ShapePredictor("/home/adrien/Personal/Projects/dlib-java/src/test/resources/shape_predictor_68_face_landmarks.dat")
+    val faceLandmarksShapePredictor: ShapePredictor = null // = new ShapePredictor("/home/adrien/Personal/Projects/dlib-java/src/test/resources/shape_predictor_68_face_landmarks.dat")
 
     val faceCascadeClassifier = new CascadeClassifier("/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml")
 

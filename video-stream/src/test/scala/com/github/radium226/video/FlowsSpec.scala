@@ -31,11 +31,10 @@ class FlowsSpec extends AbstractSpec {
     actorSystem = ActorSystem()
     actorMaterializer = ActorMaterializer()
   }
-
-  it should "be able to focus on faces" in {
-    val source = Video.open(Paths.get("/home/adrien/Personal/Vault/How to Train the Female Figure Competitor _ Workout Motivation at Enterprise Fitness-121101340.mp4"))//YouTube.source(new URL("https://www.youtube.com/watch?v=I6-hIpwCPQ8"))//Video.open(Paths.get("/home/adrien/Personal/Projects/video-miner/video-stream/src/test/resources/aspen.webm"))
-
-    val graph = source
+/*
+  it should "be able to focus on known-faces" in {
+    val source = null
+    val graph = MockVideo.source(1)
         .map({ mat =>
           val resizedMat = new Mat()
           Imgproc.resize(mat, resizedMat, new Size(mat.width / 2, mat.height / 2))
@@ -43,7 +42,7 @@ class FlowsSpec extends AbstractSpec {
         })
         .map({ mat =>
           val rects = mat.detectFaces()
-          info(s"Detecting faces (rects=${rects}... ")
+          info(s"Detecting known-faces (rects=${rects}... ")
           (mat, rects)
         })
         .map({ case (mat, rects) =>
@@ -75,5 +74,5 @@ class FlowsSpec extends AbstractSpec {
     actorSystem.terminate()
     super.afterAll()
   }
-
+*/
 }
