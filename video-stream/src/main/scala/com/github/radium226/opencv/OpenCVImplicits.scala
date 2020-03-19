@@ -27,7 +27,7 @@ trait OpenCVImplicits {
     def detectFaces(): Seq[Rect] = {
       val detectedRects = new MatOfRect()
       PimpedMat.faceCascadeClassifier.detectMultiScale(mat, detectedRects)
-      detectedRects.toArray
+      detectedRects.toArray.sortBy(_.height ^ 2).reverse
 
       //PimpedMat.faceDetector.detectFaces(mat).asScala
     }

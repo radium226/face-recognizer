@@ -75,7 +75,7 @@ class DetectScenesSpec extends AbstractSpec {
     Flow[Mat]
       .map({ frameInBGR =>
         val frameInHSV = new Mat()
-        Imgproc.cvtColor(frameInBGR, frameInHSV, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(frameInBGR, frameInHSV, Imgproc.COLOR_RGB2HSV)
         frameInHSV
       })
       .via(zipWithPrevious)
@@ -103,7 +103,7 @@ class DetectScenesSpec extends AbstractSpec {
   }
 
   it should "be able to compute HSVDelta" in {
-    val videoFilePath = Paths.get("/home/adrien/Downloads/THT6/The.Handmaids.Tale.S01E06.720p.WEBRip.x264-MOROSE[rarbg]/the.handmaids.tale.s01e06.720p.webrip.x264-morose.mkv")
+    val videoFilePath = Paths.get("/home/adrien/Personal/Projects/video-miner/video-stream/src/test/resources/Pot_de_départ.mkv")
     Video.open(videoFilePath)
       .via(computeHSVDelta)
       .runForeach(println)
@@ -131,7 +131,7 @@ class DetectScenesSpec extends AbstractSpec {
   }
 
   it should "be able to detect scene indexes" in {
-    val videoFilePath = Paths.get("/home/adrien/Downloads/THT6/The.Handmaids.Tale.S01E06.720p.WEBRip.x264-MOROSE[rarbg]/the.handmaids.tale.s01e06.720p.webrip.x264-morose.mkv")
+    val videoFilePath = Paths.get("/home/adrien/Personal/Projects/video-miner/video-stream/src/test/resources/Pot_de_départ.mkv")
     Video.open(videoFilePath)
         .via(zipWithSceneIndexes())
         .runForeach(println)
@@ -161,7 +161,7 @@ class DetectScenesSpec extends AbstractSpec {
   }
 
   it should "be able to split scenes and display it" in {
-    val videoFilePath = Paths.get("/home/adrien/Downloads/THT6/The.Handmaids.Tale.S01E06.720p.WEBRip.x264-MOROSE[rarbg]/the.handmaids.tale.s01e06.720p.webrip.x264-morose.mkv")
+    val videoFilePath = Paths.get("/home/adrien/Personal/Projects/video-miner/video-stream/src/test/resources/Pot_de_départ.mkv")
     Video.open(videoFilePath)
       .via(resize(320, 180))
       .via(zipWithSceneIndexes())
